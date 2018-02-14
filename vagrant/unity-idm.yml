@@ -1,0 +1,11 @@
+---
+- name: Configure host on vagrant
+  hosts: unity-idm
+  become: yes
+
+  vars:
+    ansible_fqdn: unity-idm.example.com
+
+  roles:
+    - { role: CSCfi.mariadb, mariadb_root_password: unityidm }
+    - { role: CSCfi.unity-idm }

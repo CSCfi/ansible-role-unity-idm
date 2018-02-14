@@ -1,0 +1,15 @@
+[Unit]
+Description=Unity IdM Service
+After=syslog.target network.target
+
+[Service]
+Type=forking
+User=unity-idm
+PIDFile=/opt/unity/unity-idm-server.pid
+ExecStart=/opt/unity/bin/unity-idm-server-start
+ExecStop=/opt/unity/bin/unity-idm-server-stop
+SuccessExitStatus=143
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

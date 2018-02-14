@@ -1,0 +1,55 @@
+---
+# tasks file for CSCfi.unity-idm
+
+- name: Unity-idm | Install | Packages
+  package: name={{ item }} state=installed
+  with_items:
+    - unzip
+    - java-1.8.0-openjdk-headless
+
+- name: Unity-idm | Create group | unity-idm
+  group:
+    name=unity-idm
+    state=present
+    system=yes
+
+- name: Unity-idm | Create user | unity-idm
+  user:
+    name=unity-idm
+    state=present
+    comment=unity-idm
+    createhome=no
+    group=unity-idm
+    home=/opt/unity
+    shell=/sbin/nologin
+    system=yes
+
+- name: Unity-idm | Download | Unarchive | {{ unityidm_src }}
+  unarchive:
+    src: "{{ unityidm_src }}"
+    dest: "/opt"
+    remote_src: True
+    owner: unity-idm
+    creates: /opt/unity-server-distribution-{{ unityidm_version }}
+
+- name: Unity-idm | Templates | copy
+  template: src={{ item.src }} dest={{ item.dst }}/{{ item.src }}
+  with_items:
+    - { src: unity-idm.service, dst: /etc/systemd/system }
+
+- name: Unity-idm | Symlink | create | logs
+  file:
+    src=/opt/unity-server-distribution-{{ unityidm_version }}/logs
+    dest=/var/log/unity-idm
+    state=link
+    force=yes
+
+- name: Unity-idm | Symlink | create | unity-idm
+  file:          
+    src=/opt/unity-server-distribution-{{ unityidm_version }}
+    dest=/opt/unity
+    state=link
+    force=yes
+
+- name: Unity-idm | Systemd | Enable
+  service: name=unity-idm enabled=yes state=started

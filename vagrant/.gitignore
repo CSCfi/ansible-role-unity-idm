@@ -1,0 +1,6 @@
+.vagrant
+group_vars
+hosts
+roles
+*.swp
+*.retry
