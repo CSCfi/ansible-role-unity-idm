@@ -1,6 +1,0 @@
-- name: Unity-idm | Default | Configurations
-  lineinfile: dest=/conf/idp.properties regexp="^#?\s*({{ item_default.option }}\s*=)" backrefs=yes  line="\\1 {{ item_default.value }}"
-  with_items:
-    - { option: 'unityServer.storage.engine.rdbms.jdbcUrl', value: "jdbcUrl=jdbc:mysql://localhost/unitydb", state: present }
-  loop_control:
-    loop_var: item_default

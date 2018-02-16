@@ -1,0 +1,37 @@
+- name: Unity-idm | Templates | copy
+  template: src={{ item.src }} dest={{ item.dst }}/{{ item.src }}
+  with_items:
+    - { src: unity-idm.sql, dst: /tmp }
+    - { src: MariaDB.repo, dst: /etc/yum.repos.d }
+
+- name: Install MariaDB
+  yum: name={{ item }} enablerepo=mariadb state=latest
+  with_items:
+    - MariaDB-server
+    - MariaDB-client
+
+- name: Enable service mariadb
+  service: name=mariadb enabled=yes state=started
+
+- shell: mysql < /tmp/unity-idm.sql
+  ignore_errors: yes
+
+- name: Unity-idm | comment | {{ unityidm_home }}/conf/unityServer.conf
+  replace:
+    path: "{{ unityidm_home }}/conf/unityServer.conf"
+    regexp: '^(unityServer.storage.engine.rdbms.*)'
+    replace: '# \1'
+
+- name: Unity-idm | Database | Configuration
+  blockinfile:
+    path: "{{ unityidm_home }}/conf/unityServer.conf"
+    marker: "### {mark} Ansible managed database configuration ###"
+    insertbefore: "unityServer.storage.engine=rdbms"
+    block: |
+      unityServer.storage.engine.rdbms.jdbcUrl=jdbc:mysql://{{ unityidm_dbhost }}:{{ unityidm_dbport }}/{{ unityidm_db }}
+      unityServer.storage.engine.rdbms.maxConnectionPoolSize=10
+      unityServer.storage.engine.rdbms.maxIdleConnectionLifetime=1800
+      unityServer.storage.engine.rdbms.minConnectionPoolSize=1
+      unityServer.storage.engine.rdbms.dialect=mysql
+      unityServer.storage.engine.rdbms.password={{ unityidm_dbpwd }}
+      unityServer.storage.engine.rdbms.username={{ unityidm_dbuser }}

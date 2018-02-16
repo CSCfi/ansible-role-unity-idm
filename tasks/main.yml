@@ -30,7 +30,7 @@
     dest: "/opt"
     remote_src: True
     owner: unity-idm
-    creates: /opt/unity-server-distribution-{{ unityidm_version }}
+    creates: "{{ unityidm_home }}"
 
 - name: Unity-idm | Templates | copy
   template: src={{ item.src }} dest={{ item.dst }}/{{ item.src }}
@@ -39,17 +39,26 @@
 
 - name: Unity-idm | Symlink | create | logs
   file:
-    src=/opt/unity-server-distribution-{{ unityidm_version }}/logs
+    src="{{ unityidm_home }}/logs"
     dest=/var/log/unity-idm
     state=link
     force=yes
 
 - name: Unity-idm | Symlink | create | unity-idm
   file:          
-    src=/opt/unity-server-distribution-{{ unityidm_version }}
+    src="{{ unityidm_home }}"
     dest=/opt/unity
     state=link
     force=yes
 
+- name: Unity-idm | Default | Configurations
+  lineinfile: dest={{ unityidm_home }}/conf/unityServer.conf regexp="^#?\s*({{ item.option }}\s*=)" backrefs=yes  line="\\1{{ item.value }}"
+  with_items:
+    - { option: 'unityServer.core.httpServer.advertisedHost', value: "{{ ansible_fqdn }}", state: present }
+#   - { option: 'unityServer.core.httpServer.host', value: "0.0.0.0", state: present }
+
 - name: Unity-idm | Systemd | Enable
   service: name=unity-idm enabled=yes state=started
+
+- name: Unity-idm | Include | Tasks
+  include_tasks: unityidm_mariadb.yml
