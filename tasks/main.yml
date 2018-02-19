@@ -50,15 +50,37 @@
     dest=/opt/unity
     state=link
     force=yes
+    owner=unity-idm
+    group=unity-idm
+
+- file:
+    path="{{ unityidm_src }}/."
+    owner=unity-idm
+    group=unity-idm
+    recurse=yes
+
+- file:
+    path="{{ unityidm_home }}/."
+    owner=unity-idm
+    group=unity-idm
+    recurse=yes
 
 - name: Unity-idm | Default | Configurations
   lineinfile: dest={{ unityidm_home }}/conf/unityServer.conf regexp="^#?\s*({{ item.option }}\s*=)" backrefs=yes  line="\\1{{ item.value }}"
   with_items:
-    - { option: 'unityServer.core.httpServer.advertisedHost', value: "{{ ansible_fqdn }}", state: present }
-#   - { option: 'unityServer.core.httpServer.host', value: "0.0.0.0", state: present }
+    - { option: 'unityServer.core.httpServer.advertisedHost', value: "{{ unityidm_fqdn }}", state: present }
+    - { option: 'unityServer.core.httpServer.host', value: "{{ inventory_hostname }}", state: present }
 
 - name: Unity-idm | Systemd | Enable
   service: name=unity-idm enabled=yes state=started
 
 - name: Unity-idm | Include | Tasks
   include_tasks: unityidm_mariadb.yml
+
+- lineinfile:
+    path: /etc/rc.d/rc.firewall.local
+    regexp: '^iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 2443'
+    line: 'iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 2443'
+  ignore_errors: true
+
+- shell: iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 2443
