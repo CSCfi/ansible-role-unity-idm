@@ -69,7 +69,14 @@
   lineinfile: dest={{ unityidm_home }}/conf/unityServer.conf regexp="^#?\s*({{ item.option }}\s*=)" backrefs=yes  line="\\1{{ item.value }}"
   with_items:
     - { option: 'unityServer.core.httpServer.advertisedHost', value: "{{ unityidm_fqdn }}", state: present }
-    - { option: 'unityServer.core.httpServer.host', value: "{{ inventory_hostname }}", state: present }
+#   - { option: 'unityServer.core.httpServer.host', value: "{{ inventory_hostname }}", state: present }
+
+- name: Unity-idm | Default | Config | Host
+  lineinfile: 
+    dest: /etc/dhcp/interface-br0.conf 
+    regexp: '^(.*)unityServer.core.httpServer.host=(.*)$' 
+    line: 'unityServer.core.httpServer.host=0.0.0.0'
+    backrefs: yes
 
 - name: Unity-idm | Systemd | Enable
   service: name=unity-idm enabled=yes state=started
