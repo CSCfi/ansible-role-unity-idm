@@ -1,7 +1,7 @@
 ---
 # defaults file for CSCfi.unity-idm
 
-unityidm_version: 2.4.1
+unityidm_version: 2.5.0
 unityidm_fqdn: "{{ ansible_fqdn }}"
 unityidm_mariadbversion: 10.1
 unityidm_src: https://downloads.sourceforge.net/project/unity-idm/Unity%20server/{{ unityidm_version }}/unity-server-distribution-{{ unityidm_version }}-dist.tar.gz
